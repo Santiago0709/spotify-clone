@@ -1,6 +1,8 @@
+import { usePlayerStore } from "@/store/playerStore"
 import { useState, useRef, useEffect } from "react"
 
-const Play = () => (
+
+export const Play = () => (
     <svg
         fill="black"
         viewBox="0 0 16 16"
@@ -12,7 +14,7 @@ const Play = () => (
 
 )
 
-const Pause = () => (
+export const Pause = () => (
     <svg
         viewBox="0 0 530 1000"
         fill="black"
@@ -21,33 +23,48 @@ const Pause = () => (
     >
         <path d="M440 150c60 0 90 21.333 90 64v570c0 44-30 66-90 66s-90-22-90-66V214c0-42.667 30-64 90-64m-350 0c60 0 90 21.333 90 64v570c0 44-30 66-90 66S0 828 0 784V214c0-42.667 30-64 90-64" />
     </svg>
-
 )
 
+const CurrentSong = ({image, title}) => {
+    return(
+        <div className={`
+            flex items-center gap-5 relative 
+            overflow-hidden   
+        `}>
+            <picture className="w-16 h-16 bg-zinc-800 rounded-md shadow-lg overflow-hidden">
+                <img src={image} alt={title}/>
+            </picture>
+            <h3 className="font-bold block">{title}</h3>
+        </div>
+    )
+}
 export function Player() {
-    const [isPlaying, setIsPlaying] = useState(false)
-    const [currentSong, setCurrentSong] = useState(null)
+    const {currentMusic, isPlaying, setIsPlaying} = usePlayerStore(state => state)
     const audioRef = useRef()
 
     useEffect(() => {
-        audioRef.current.src = '/music/1/01.mp3'
-    }, [])
+        isPlaying
+            ? audioRef.current.play()
+            : audioRef.current.pause()
+    }, [isPlaying])
+
+    useEffect(() => {
+       const {song, playlist, songs} = currentMusic
+       if(song) {
+        const src = `/music/${playlist.id}/0${song.id}.mp3`
+        audioRef.current.src = src
+        audioRef.current.play()
+       }
+    }, [currentMusic])
 
     const handleClick= () => {
-        if(isPlaying){
-            audioRef.current.pause()
-        }else{
-            audioRef.current.play()
-            audioRef.current.volume = 0.1
-        }
-
         setIsPlaying(!isPlaying)
     }
 
     return (
         <div className="flex flex-row justify-between w-full px-4 z-50">
             <div>
-                CurrentSong...
+                <CurrentSong {...currentMusic.song}/>
             </div>
 
             <div className="grid place-content-center gap-4 flex-1">
