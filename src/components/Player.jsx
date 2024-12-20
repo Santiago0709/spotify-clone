@@ -1,6 +1,6 @@
 import { usePlayerStore } from "@/store/playerStore"
 import { useState, useRef, useEffect } from "react"
-
+import Slider from "./Slider"
 
 export const Play = () => (
     <svg
@@ -25,21 +25,25 @@ export const Pause = () => (
     </svg>
 )
 
-const CurrentSong = ({image, title}) => {
-    return(
+const CurrentSong = ({ image, title, artists}) => {
+    return (
         <div className={`
             flex items-center gap-5 relative 
             overflow-hidden   
         `}>
             <picture className="w-16 h-16 bg-zinc-800 rounded-md shadow-lg overflow-hidden">
-                <img src={image} alt={title}/>
+                <img src={image} alt={title} />
             </picture>
-            <h3 className="font-bold block">{title}</h3>
+
+            <div className="flex flex-col">
+                <h3 className="font-semibold text-sm block">{title}</h3>
+                <span className="text-xs opacity-80 ">{artists?.join(', ')}</span>
+            </div>
         </div>
     )
 }
 export function Player() {
-    const {currentMusic, isPlaying, setIsPlaying} = usePlayerStore(state => state)
+    const { currentMusic, isPlaying, setIsPlaying } = usePlayerStore(state => state)
     const audioRef = useRef()
 
     useEffect(() => {
@@ -49,22 +53,22 @@ export function Player() {
     }, [isPlaying])
 
     useEffect(() => {
-       const {song, playlist, songs} = currentMusic
-       if(song) {
-        const src = `/music/${playlist.id}/0${song.id}.mp3`
-        audioRef.current.src = src
-        audioRef.current.play()
-       }
+        const { song, playlist, songs } = currentMusic
+        if (song) {
+            const src = `/music/${playlist.id}/0${song.id}.mp3`
+            audioRef.current.src = src
+            audioRef.current.play()
+        }
     }, [currentMusic])
 
-    const handleClick= () => {
+    const handleClick = () => {
         setIsPlaying(!isPlaying)
     }
 
     return (
         <div className="flex flex-row justify-between w-full px-4 z-50">
             <div>
-                <CurrentSong {...currentMusic.song}/>
+                <CurrentSong {...currentMusic.song} />
             </div>
 
             <div className="grid place-content-center gap-4 flex-1">
@@ -76,10 +80,19 @@ export function Player() {
             </div>
 
             <div className="grid place-content-center">
-                Volume
+                <Slider
+                    defaultValue={100}
+                    min={0}
+                    max={100}
+                    className="w-[95px]"
+                    onValueChange={(value) => {
+                        const [newVolume] = value
+                        audioRef.current.volume = newVolume / 100
+                    }}
+                />
             </div>
 
-            <audio ref={audioRef}/>
+            <audio ref={audioRef} />
         </div>
     )
 }
